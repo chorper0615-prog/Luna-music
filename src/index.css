@@ -1,0 +1,521 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --surface: rgba(18, 18, 24, 0.58);
+  --surface-strong: rgba(24, 24, 32, 0.82);
+  --surface-soft: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.14);
+  --text-main: rgba(255, 255, 255, 0.96);
+  --text-subtle: rgba(255, 255, 255, 0.62);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(255, 92, 138, 0.15), transparent 32%),
+    radial-gradient(circle at 80% 10%, rgba(81, 168, 255, 0.18), transparent 28%),
+    linear-gradient(180deg, #050507 0%, #09090d 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.glass-strong {
+  background: var(--surface-strong);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(34px) saturate(190%);
+  -webkit-backdrop-filter: blur(34px) saturate(190%);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.glass-soft {
+  background: var(--surface-soft);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.touch-active {
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.touch-active:active {
+  transform: scale(0.97);
+}
+
+.music-card {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+}
+
+.music-card:active {
+  transform: scale(0.97);
+}
+
+.progress-bar,
+.volume-bar {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  outline: none;
+  background: transparent;
+}
+
+.progress-bar::-webkit-slider-runnable-track,
+.volume-bar::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.progress-bar::-webkit-slider-thumb,
+.volume-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
+  margin-top: -5px;
+}
+
+.progress-bar::-moz-range-track,
+.volume-bar::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.progress-bar::-moz-range-thumb,
+.volume-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: white;
+}
+
+@keyframes float-up {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-10px) translateX(6px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.04); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-float-up { animation: float-up 7s ease-in-out infinite; }
+.animate-pulse-soft { animation: pulse-soft 2.8s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 14s linear infinite; }
+.animate-wave { animation: wave 1.15s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in { animation: fade-in 0.22s ease both; }
+ .animate-scale-in { animation: scale-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+ .animate-breath { animation: breathe 3.5s ease-in-out infinite; }
+ .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+
+.eq-bar-1 { animation: wave 0.82s ease-in-out infinite; }
+.eq-bar-2 { animation: wave 0.96s ease-in-out infinite 0.08s; }
+.eq-bar-3 { animation: wave 0.88s ease-in-out infinite 0.16s; }
+.eq-bar-4 { animation: wave 1.04s ease-in-out infinite 0.12s; }
+ .eq-bar-5 { animation: wave 0.74s ease-in-out infinite 0.20s; }
+ .eq-bar-6 { animation: wave 0.92s ease-in-out infinite 0.04s; }
+
+.vinyl-spin {
+  animation: spin-slow 4s linear infinite;
+}
+
+.vinyl-paused {
+  animation-play-state: paused;
+}
+/* ---- Apple Music + Liquid Glass Enhancements ---- */
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+@keyframes scale-in {
+  0% { opacity: 0; transform: scale(0.92) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.05); }
+  50% { box-shadow: 0 0 30px rgba(255,255,255,0.12); }
+}
+@keyframes slide-up-fade {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes cover-slide-in {
+  0% { opacity: 0; transform: scale(0.96) translateX(30px); }
+  100% { opacity: 1; transform: scale(1) translateX(0); }
+}
+@keyframes cover-slide-out {
+  0% { opacity: 1; transform: scale(1) translateX(0); }
+  100% { opacity: 0; transform: scale(0.96) translateX(-30px); }
+}
+.animate-stagger > * {
+  opacity: 0;
+  animation: slide-up-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+.glass-liquid {
+  background: linear-gradient(160deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 30%, rgba(0,0,0,0.10) 70%, rgba(255,255,255,0.05) 100%);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(32px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.10);
+  position: relative;
+  overflow: hidden;
+}
+.glass-liquid::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.30), transparent);
+}
+.glass-liquid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.08) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.04) 100%);
+  pointer-events: none;
+}
+.animate-cover-in { animation: cover-slide-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-cover-out { animation: cover-slide-out 0.35s ease-in both; }
+.tab-pill {
+  position: absolute;
+  bottom: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: white;
+  transition: left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== iOS 26 Liquid Glass Enhancements ===== */
+
+/* Light/Dark mode */
+:root.light {
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --text-primary: rgba(0, 0, 0, 0.92);
+  --text-secondary: rgba(0, 0, 0, 0.55);
+  --surface-glass: rgba(255, 255, 255, 0.68);
+  --bg-gradient: radial-gradient(circle at top, rgba(255,200,230,0.5), transparent 48%), radial-gradient(circle at 80% 20%, rgba(180,220,255,0.5), transparent 38%), linear-gradient(180deg, #f5f5f7 0%, #ffffff 100%);
+}
+
+:root.dark {
+  --glass-bg: rgba(22, 22, 28, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --surface-glass: rgba(24, 24, 32, 0.78);
+  --bg-gradient: radial-gradient(circle at top, rgba(255,92,138,0.12), transparent 32%), radial-gradient(circle at 80% 10%, rgba(81,168,255,0.14), transparent 28%), linear-gradient(180deg, #050507 0%, #09090d 100%);
+}
+
+/* Liquid Glass surface — iOS 26 style */
+.glass-ios {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12), inset 0 0.5px 0 rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.glass-ios::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+.glass-ios::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Shimmer animation */
+@keyframes shimmer { 0% { transform: translateX(-100%) skewX(-15deg); } 100% { transform: translateX(200%) skewX(-15deg); } }
+.animate-shimmer::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer 3s ease-in-out infinite; pointer-events: none;
+}
+
+/* Scale bounce appear */
+@keyframes scale-in { 0% { opacity: 0; transform: scale(0.92) translateY(8px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+.animate-scale-in { animation: scale-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Slide up fade */
+@keyframes slide-up-fade { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0); } }
+.animate-stagger > * { opacity: 0; animation: slide-up-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.animate-stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.animate-stagger > *:nth-child(3) { animation-delay: 0.10s; }
+.animate-stagger > *:nth-child(4) { animation-delay: 0.14s; }
+.animate-stagger > *:nth-child(5) { animation-delay: 0.18s; }
+.animate-stagger > *:nth-child(6) { animation-delay: 0.22s; }
+.animate-stagger > *:nth-child(7) { animation-delay: 0.26s; }
+.animate-stagger > *:nth-child(8) { animation-delay: 0.30s; }
+
+/* Breath */
+@keyframes breathe { 0%,100% { opacity: 0.85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.02); } }
+.animate-breath { animation: breathe 3.5s ease-in-out infinite; }
+
+/* Glow pulse */
+@keyframes glow-pulse { 0%,100% { box-shadow: 0 0 20px rgba(255,255,255,0.05); } 50% { box-shadow: 0 0 30px rgba(255,255,255,0.12); } }
+.animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+
+/* Cover slide transition */
+@keyframes cover-slide-in { 0% { opacity: 0; transform: scale(0.96) translateX(30px); } 100% { opacity: 1; transform: scale(1) translateX(0); } }
+.animate-cover-in { animation: cover-slide-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Tab pill indicator */
+.tab-pill { position: absolute; bottom: 3px; height: 3px; border-radius: 999px; background: white; transition: left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* Scrollbar hidden */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Glass card for search results */
+.search-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+}
+.search-card:active { transform: scale(0.97); }
+
+/* ===== Lyrics Display ===== */
+.lyrics-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 5%, black 15%, black 85%, transparent 95%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 5%, black 15%, black 85%, transparent 95%);
+}
+.lyrics-line {
+  transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.25;
+  transform: scale(0.88) translateY(8px);
+  padding: 8px 0 8px 0;
+  line-height: 1.6;
+  position: relative;
+  cursor: pointer;
+}
+.lyrics-line.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.15);
+}
+.lyrics-line.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #ff6b81, #ff8f5a);
+  box-shadow: 0 0 12px rgba(255,107,129,0.5);
+}
+.lyrics-line.passed {
+  opacity: 0.12;
+  transform: scale(0.82) translateY(-6px);
+}
+/* ===== Hover Scale Animation ===== */
+.hover-lift {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+}
+.hover-lift:hover { transform: translateY(-2px); }
+.hover-lift:active { transform: scale(0.95); }
+
+/* ===== Button press animation ===== */
+.btn-press {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.12s ease;
+}
+.btn-press:active { transform: scale(0.88); }
+
+/* ===== Glass card glow ===== */
+@keyframes glass-glow {
+  0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.15); }
+  50% { box-shadow: 0 12px 48px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 60px rgba(255,255,255,0.04); }
+}
+.animate-glass-glow { animation: glass-glow 4s ease-in-out infinite; }
+
+/* ===== Scale down ===== */
+.active\:scale-98:active { transform: scale(0.98) !important; }
+.active\:scale-85:active { transform: scale(0.85) !important; }
+.hover\:translate-x-1:hover { transform: translateX(4px) !important; }
+
+/* ===== Player slide transitions ===== */
+.slide-up-enter { animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.slide-up-exit { animation: slide-up 0.3s ease-in both reverse; }
+.fade-enter { animation: fade-in 0.3s ease both; }
+
+/* ===== Queue item pulse ===== */
+@keyframes queue-pulse {
+  0% { background: var(--glass-bg); }
+  50% { background: var(--surface-glass); }
+  100% { background: var(--glass-bg); }
+}
+
+/* ===== Full player shimmer overlay ===== */
+.player-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 240px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ===== Placeholder animation ===== */
+@keyframes shimmer-bg {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-placeholder {
+  background: linear-gradient(90deg, var(--glass-bg) 25%, var(--surface-glass) 50%, var(--glass-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer-bg 1.5s ease-in-out infinite;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.progress-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.progress-slider::-webkit-slider-runnable-track {
+  background: transparent;
+  border: none;
+}
+.progress-slider::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+@keyframes view-slide-in-right {
+  from { opacity: 0; transform: translateX(30px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes view-slide-in-left {
+  from { opacity: 0; transform: translateX(-30px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes view-fade-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-view-lyrics {
+  animation: view-slide-in-right 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-view-cover {
+  animation: view-slide-in-left 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-view-queue {
+  animation: view-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes profile-slide-down {
+  from { opacity: 0; transform: translateY(-20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-profile-in {
+  animation: profile-slide-down 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bubble-in {
+  0% { opacity: 0; transform: scale(0.8) translateY(4px); }
+  60% { opacity: 1; transform: scale(1.02) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-bubble-in {
+  animation: bubble-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
