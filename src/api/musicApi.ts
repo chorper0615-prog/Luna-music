@@ -36,7 +36,7 @@ export async function getSongUrl(track: Track): Promise<string> {
   if (!res.ok) return '';
   const data = await res.json();
   if (data.status && data.data) {
-    return `/api/proxy-audio?url=${encodeURIComponent(data.data)}`;
+    return data.data;
   }
   return '';
 }

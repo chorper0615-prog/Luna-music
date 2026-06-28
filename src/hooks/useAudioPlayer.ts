@@ -34,6 +34,7 @@ export function useAudioPlayer() {
   const shuffledQueueRef = useRef<Track[]>([]);
   const isSeekingRef = useRef(false);
   const seekTimeoutRef = useRef<number | null>(null);
+  const proxyFallbackRef = useRef<string | null>(null);
 
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [queue, setQueueState] = useState<Track[]>([]);
@@ -93,7 +94,23 @@ export function useAudioPlayer() {
         setPlayerState((prev) => (prev === 'loading' ? 'paused' : prev));
       }
     };
-    const onError = () => setPlayerState('idle');
+    const onError = () => {
+      // 如果当前URL不是代理URL，尝试用代理播放
+      const currentSrc = audio?.src || '';
+      if (currentSrc && !currentSrc.includes('/api/proxy-audio') && currentTrack) {
+        const proxyUrl = `/api/proxy-audio?url=${encodeURIComponent(currentSrc)}`;
+        if (proxyFallbackRef.current !== currentTrack.id) {
+          proxyFallbackRef.current = currentTrack.id;
+          audio.src = proxyUrl;
+          audio.load();
+          audio.play().catch(() => {
+            setPlayerState('idle');
+          });
+          return;
+        }
+      }
+      setPlayerState('idle');
+    };
     const onSeeking = () => {
       isSeekingRef.current = true;
     };
@@ -129,6 +146,7 @@ export function useAudioPlayer() {
     if (!audio) return;
 
     latestTrackRef.current = track.id;
+    proxyFallbackRef.current = null;
     const nextQueue = newQueue ?? queueRef.current;
 
     setCurrentTrack(track);

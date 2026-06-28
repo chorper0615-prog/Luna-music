@@ -1,0 +1,23 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/api/search"
+  to = "/.netlify/functions/search"
+  status = 200
+
+[[redirects]]
+  from = "/api/url"
+  to = "/.netlify/functions/song-url"
+  status = 200
+
+[[redirects]]
+  from = "/api/proxy-audio"
+  to = "/.netlify/functions/proxy-audio"
+  status = 200
+
+[[redirects]]
+  from = "/api/lyric"
+  to = "/.netlify/functions/lyric"
+  status = 200
