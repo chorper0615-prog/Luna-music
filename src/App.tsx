@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Track, Tab } from './types/music';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
+import { useFavorites } from './hooks/useFavorites';
 import DynamicBackground from './components/DynamicBackground';
 import MiniPlayer from './components/MiniPlayer';
 import FullPlayer from './components/FullPlayer';
@@ -18,10 +19,14 @@ export default function App() {
   const [theme] = useState<'dark' | 'light'>('dark');
   const [profileOpen, setProfileOpen] = useState(false);
   const [ipodMode, setIpodMode] = useState(false);
+  const [tabTransitionKey, setTabTransitionKey] = useState(0);
+  const [isSearchTransition, setIsSearchTransition] = useState(false);
 
   useEffect(() => { document.documentElement.className = theme; }, [theme]);
 
   const user = { name: '音乐爱好者', avatar: null as string | null };
+
+  const { favorites, isFavorite, toggleFavorite, addFavorite, removeFavorite, clearFavorites } = useFavorites();
 
   const {
     currentTrack,
@@ -60,7 +65,20 @@ export default function App() {
   const themeColor = useMemo(() => currentTrack?.color || '#ff6b81', [currentTrack]);
 
   const handleTabChange = (tab: Tab) => {
+    if (tab === activeTab) return;
+    setTabTransitionKey(k => k + 1);
     setActiveTab(tab);
+  };
+  
+  const handleSearchFromHome = () => {
+    setIsSearchTransition(true);
+    setTabTransitionKey(k => k + 1);
+    setTimeout(() => {
+      setActiveTab('search');
+      setTimeout(() => {
+        setIsSearchTransition(false);
+      }, 400);
+    }, 100);
   };
 
   if (!splashDone) return <SplashScreen onDone={() => setSplashDone(true)} />;
@@ -201,18 +219,30 @@ export default function App() {
 
         <div className='flex-1 min-h-0 relative'>
           {activeTab === 'home' && (
-            <section className='absolute inset-0 animate-fade-in' style={{ overflow: 'hidden' }}>
-              <HomeView currentTrack={currentTrack} isPlaying={isPlaying} onPlay={handlePlay} onOpenPlayer={() => setPlayerOpen(true)} />
+            <section 
+              key={`home-${tabTransitionKey}`}
+              className={`absolute inset-0 ${isSearchTransition ? 'animate-tab-home-exit' : 'animate-tab-enter'}`}
+              style={{ overflow: 'hidden' }}
+            >
+              <HomeView currentTrack={currentTrack} isPlaying={isPlaying} onPlay={handlePlay} onOpenPlayer={() => setPlayerOpen(true)} onSearchClick={handleSearchFromHome} />
             </section>
           )}
           {activeTab === 'search' && (
-            <section className='absolute inset-0 animate-fade-in' style={{ overflow: 'hidden' }}>
-              <SearchView currentTrack={currentTrack} onPlay={handlePlay} />
+            <section 
+              key={`search-${tabTransitionKey}`}
+              className={`absolute inset-0 ${isSearchTransition ? 'animate-tab-search-enter' : 'animate-tab-enter'}`}
+              style={{ overflow: 'hidden' }}
+            >
+              <SearchView currentTrack={currentTrack} onPlay={handlePlay} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} />
             </section>
           )}
           {activeTab === 'library' && (
-            <section className='absolute inset-0 animate-fade-in' style={{ overflow: 'hidden' }}>
-              <LibraryView currentTrack={currentTrack} isPlaying={isPlaying} onPlay={handlePlay} />
+            <section 
+              key={`library-${tabTransitionKey}`}
+              className='absolute inset-0 animate-tab-enter'
+              style={{ overflow: 'hidden' }}
+            >
+              <LibraryView currentTrack={currentTrack} isPlaying={isPlaying} onPlay={handlePlay} favorites={favorites} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} />
             </section>
           )}
         </div>
@@ -227,21 +257,99 @@ export default function App() {
         </div>
       </main>
 
-      <FullPlayer track={currentTrack} queue={queue} playerState={playerState} currentTime={currentTime} duration={duration} volume={volume} isMuted={isMuted} repeatMode={repeatMode} isShuffled={isShuffled} isOpen={playerOpen} onClose={() => setPlayerOpen(false)} onTogglePlay={togglePlay} onNext={playNext} onPrev={playPrev} onSeek={seek} onVolumeChange={changeVolume} onToggleMute={toggleMute} onToggleRepeat={toggleRepeat} onToggleShuffle={toggleShuffle} onTrackSelect={handleTrackSelectFromQueue} />
+      <FullPlayer track={currentTrack} queue={queue} playerState={playerState} currentTime={currentTime} duration={duration} volume={volume} isMuted={isMuted} repeatMode={repeatMode} isShuffled={isShuffled} isOpen={playerOpen} isFavorite={currentTrack ? isFavorite(currentTrack.id) : false} onClose={() => setPlayerOpen(false)} onTogglePlay={togglePlay} onNext={playNext} onPrev={playPrev} onSeek={seek} onVolumeChange={changeVolume} onToggleMute={toggleMute} onToggleRepeat={toggleRepeat} onToggleShuffle={toggleShuffle} onTrackSelect={handleTrackSelectFromQueue} onToggleFavorite={toggleFavorite} />
 
       {ipodMode && (
-        <IpodMode
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          currentTime={currentTime}
-          duration={duration}
-          onPlay={handlePlay}
-          onTogglePlay={togglePlay}
-          onNext={playNext}
-          onPrev={playPrev}
-          onExit={() => setIpodMode(false)}
-        />
+        <div 
+          className="fixed inset-0 z-50 animate-ipod-enter"
+          style={{ pointerEvents: 'auto' }}
+        >
+          <IpodMode
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            currentTime={currentTime}
+            duration={duration}
+            onPlay={handlePlay}
+            onTogglePlay={togglePlay}
+            onNext={playNext}
+            onPrev={playPrev}
+            onSeek={seek}
+            onExit={() => setIpodMode(false)}
+          />
+        </div>
       )}
+
+      <style>{`
+        @keyframes ipod-enter {
+          0% {
+            opacity: 0;
+            transform: scale(0.9) translateY(30px);
+            filter: blur(20px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.02) translateY(-5px);
+            filter: blur(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
+          }
+        }
+        .animate-ipod-enter {
+          animation: ipod-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        /* Tab 切换基础入场动画 */
+        @keyframes tab-enter {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-tab-enter {
+          animation: tab-enter 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        /* 首页退出（点击搜索时） */
+        @keyframes tab-home-exit {
+          from {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0);
+          }
+          to {
+            opacity: 0;
+            transform: scale(1.08);
+            filter: blur(15px);
+          }
+        }
+        .animate-tab-home-exit {
+          animation: tab-home-exit 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+        
+        /* 搜索页入场（从首页点击搜索时） */
+        @keyframes tab-search-enter {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            filter: blur(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+          }
+        }
+        .animate-tab-search-enter {
+          animation: tab-search-enter 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+        }
+      `}</style>
     </div>
   );
 }

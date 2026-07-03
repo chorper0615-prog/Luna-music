@@ -46,15 +46,29 @@ async function neteaseSearch(keyword: string, page: number, limit: number) {
 async function getRawAudioUrl(songId: string): Promise<string | null> {
   try {
     const resp = await fetch(`${CLOUD_API}/song/url?id=${songId}&br=128000`, {
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(5000),
     });
     const data: any = await resp.json();
     if (data.code === 200 && data.data && data.data[0] && data.data[0].url) return data.data[0].url;
-    return null;
   } catch (e: any) {
-    console.warn('CloudApi error:', e.message);
-    return null;
+    console.warn('CloudApi error, trying backup:', e.message);
   }
+  
+  try {
+    const backupUrl = `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
+    const testResp = await fetch(backupUrl, {
+      method: 'HEAD',
+      headers: { 'User-Agent': UA, 'Referer': 'https://music.163.com/' },
+      signal: AbortSignal.timeout(5000),
+    } as any);
+    if (testResp.ok || testResp.status === 206) {
+      return backupUrl;
+    }
+  } catch (e: any) {
+    console.warn('Backup url error:', e.message);
+  }
+  
+  return null;
 }
 
 function sendJson(res: any, status: number, data: any) {
@@ -180,17 +194,36 @@ export function apiPlugin(): Plugin {
         const id = url.searchParams.get('id') || '';
         try {
           const lyrResp = await fetch(`${CLOUD_API}/lyric?id=${id}`, {
-            signal: AbortSignal.timeout(5000),
+            signal: AbortSignal.timeout(3000),
           });
           const lyrData: any = await lyrResp.json();
           if (lyrData.code === 200 && lyrData.lrc && lyrData.lrc.lyric) {
             sendJson(res, 200, { status: true, data: lyrData.lrc.lyric });
-          } else {
-            sendJson(res, 200, { status: false });
+            return;
           }
         } catch (e) {
-          sendJson(res, 200, { status: false });
+          console.warn('Cloud lyric error, trying backup:', e);
         }
+        
+        try {
+          const backupResp = await fetch(`https://music.163.com/api/song/lyric?os=pc&id=${id}&lv=-1&kv=-1&tv=-1`, {
+            headers: { 
+              'User-Agent': UA, 
+              'Referer': 'https://music.163.com/',
+              'Accept': 'application/json',
+            },
+            signal: AbortSignal.timeout(5000),
+          } as any);
+          const backupData: any = await backupResp.json();
+          if (backupData.lrc && backupData.lrc.lyric) {
+            sendJson(res, 200, { status: true, data: backupData.lrc.lyric });
+            return;
+          }
+        } catch (e) {
+          console.warn('Backup lyric error:', e);
+        }
+        
+        sendJson(res, 200, { status: false });
       });
 
       server.middlewares.use('/api/health', (_req, res) => {

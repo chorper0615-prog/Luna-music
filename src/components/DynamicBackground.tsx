@@ -22,43 +22,134 @@ export default function DynamicBackground({ color = '#ff6b81', cover, isPlaying 
   return (
     <div className="fixed inset-0 -z-0 overflow-hidden">
       <div className="absolute inset-0 bg-[#050507]" />
+
       {cover ? (
-        <img src={cover} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-3xl" />
-      ) : null}
-      <div
-        className="absolute -left-20 top-[-10%] h-[60vw] w-[60vw] rounded-full blur-3xl animate-float-up"
-        style={{
-          background: `radial-gradient(circle, rgba(${r},${g},${b},0.42) 0%, rgba(${r},${g},${b},0.05) 58%, transparent 72%)`,
-        }}
-      />
-      <div
-        className="absolute right-[-10%] top-[18%] h-[50vw] w-[50vw] rounded-full blur-3xl animate-float-up"
-        style={{
-          animationDelay: '-2s',
-          background: `radial-gradient(circle, rgba(${Math.min(255, r + 50)},${Math.max(0, g - 12)},${Math.min(255, b + 42)},0.28) 0%, transparent 72%)`,
-        }}
-      />
-      <div
-        className="absolute left-[20%] bottom-[-8%] h-[48vw] w-[48vw] rounded-full blur-3xl animate-float-up"
-        style={{
-          animationDelay: '-4s',
-          background: `radial-gradient(circle, rgba(${Math.max(0, r - 28)},${Math.min(255, g + 24)},${Math.min(255, b + 18)},0.22) 0%, transparent 70%)`,
-        }}
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_34%),linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.58))]" />
-      <div
-        className="absolute inset-0 opacity-25"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'180\' viewBox=\'0 0 180 180\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'2\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'180\' height=\'180\' filter=\'url(%23n)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
-        }}
-      />
-      {isPlaying ? (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="absolute h-56 w-56 rounded-full border border-white/12 animate-pulse-soft" />
-          <div className="absolute h-80 w-80 rounded-full border border-white/8 animate-pulse-soft" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0">
+          <img
+            src={cover}
+            alt=""
+            className="absolute inset-0 h-full w-full scale-150 object-cover opacity-20"
+            style={{
+              filter: 'blur(80px) saturate(180%)',
+              transform: 'scale(1.5)',
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80" />
         </div>
       ) : null}
+
+      {/* iOS 风格极光流动效果 */}
+      <div
+        className="absolute -top-32 -left-32 h-[70vw] w-[70vw] rounded-full"
+        style={{
+          background: `radial-gradient(ellipse at center, rgba(${r},${g},${b},0.35) 0%, rgba(${r},${g},${b},0.1) 40%, transparent 70%)`,
+          filter: 'blur(60px)',
+          animation: 'aurora-float 20s ease-in-out infinite',
+        }}
+      />
+
+      <div
+        className="absolute -top-20 -right-40 h-[60vw] w-[60vw] rounded-full"
+        style={{
+          background: `radial-gradient(ellipse at center, rgba(${Math.min(255, r + 60)},${Math.min(255, g + 30)},${Math.min(255, b + 80)},0.28) 0%, transparent 60%)`,
+          filter: 'blur(70px)',
+          animation: 'aurora-float 25s ease-in-out infinite reverse',
+          animationDelay: '-5s',
+        }}
+      />
+
+      <div
+        className="absolute -bottom-40 left-1/4 h-[55vw] w-[55vw] rounded-full"
+        style={{
+          background: `radial-gradient(ellipse at center, rgba(${Math.max(0, r - 20)},${Math.min(255, g + 50)},${Math.min(255, b + 60)},0.22) 0%, transparent 65%)`,
+          filter: 'blur(80px)',
+          animation: 'aurora-float 30s ease-in-out infinite',
+          animationDelay: '-10s',
+        }}
+      />
+
+      {/* 中心光晕 */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[40vw] w-[40vw] rounded-full"
+        style={{
+          background: `radial-gradient(circle, rgba(${r},${g},${b},0.12) 0%, transparent 70%)`,
+          filter: 'blur(40px)',
+        }}
+      />
+
+      {/* 顶部高光 */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1/2"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 60%)',
+        }}
+      />
+
+      {/* 底部暗部 */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1/3"
+        style={{
+          background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%)',
+        }}
+      />
+
+      {/* 细腻噪点质感 */}
+      <div
+        className="absolute inset-0 opacity-30 mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage:
+            'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'200\' height=\'200\' filter=\'url(%23n)\' opacity=\'0.35\'/%3E%3C/svg%3E")',
+        }}
+      />
+
+      {/* 播放时的呼吸光环 */}
+      {isPlaying ? (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+            className="absolute h-[60vh] w-[60vh] rounded-full"
+            style={{
+              border: `1px solid rgba(${r},${g},${b},0.08)`,
+              animation: 'pulse-ring 4s ease-out infinite',
+            }}
+          />
+          <div
+            className="absolute h-[80vh] w-[80vh] rounded-full"
+            style={{
+              border: `1px solid rgba(${r},${g},${b},0.05)`,
+              animation: 'pulse-ring 4s ease-out infinite',
+              animationDelay: '1.3s',
+            }}
+          />
+        </div>
+      ) : null}
+
+      <style>{`
+        @keyframes aurora-float {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          25% {
+            transform: translate(8%, 6%) scale(1.08);
+          }
+          50% {
+            transform: translate(-4%, 10%) scale(0.95);
+          }
+          75% {
+            transform: translate(-8%, -4%) scale(1.05);
+          }
+        }
+
+        @keyframes pulse-ring {
+          0% {
+            transform: scale(0.9);
+            opacity: 0.6;
+          }
+          100% {
+            transform: scale(1.3);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
