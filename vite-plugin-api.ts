@@ -95,15 +95,16 @@ function clearCookieStore() {
 
 async function neteaseSearch(keyword: string, page: number, limit: number, cookie: string = '') {
   try {
-    if (cookie && NeteaseMusicApi?.search) {
+    if (NeteaseMusicApi?.search) {
       try {
-        const result = await NeteaseMusicApi.search({
+        const searchParams: any = {
           keywords: keyword,
           type: 1,
           limit,
           offset: page * limit,
-          cookie,
-        });
+        };
+        if (cookie) searchParams.cookie = cookie;
+        const result = await NeteaseMusicApi.search(searchParams);
         if (result?.body?.result?.songs) {
           const songs = result.body.result.songs.map((item: any, i: number) => ({
             songId: item.id,
@@ -178,18 +179,37 @@ async function neteaseSearch(keyword: string, page: number, limit: number, cooki
 }
 
 async function getRawAudioUrl(songId: string, cookie: string = ''): Promise<string | null> {
-  if (cookie && NeteaseMusicApi?.song_url_v1) {
+  // 1. 使用 NeteaseCloudMusicApi 获取歌曲 URL（不需要 cookie 也能获取非 VIP 歌曲）
+  if (NeteaseMusicApi?.song_url_v1) {
     try {
-      const result = await NeteaseMusicApi.song_url_v1({
+      const urlParams: any = {
         id: songId,
         level: 'exhigh',
-        cookie,
-      });
+      };
+      if (cookie) urlParams.cookie = cookie;
+      const result = await NeteaseMusicApi.song_url_v1(urlParams);
       if (result?.body?.data?.[0]?.url) {
         return result.body.data[0].url;
       }
     } catch (e: any) {
       console.warn('Netease API song_url_v1 failed:', e.message);
+    }
+  }
+
+  // 2. 使用 NeteaseCloudMusicApi 的 song_url 接口（备选）
+  if (NeteaseMusicApi?.song_url) {
+    try {
+      const urlParams: any = {
+        id: songId,
+        br: 320000,
+      };
+      if (cookie) urlParams.cookie = cookie;
+      const result = await NeteaseMusicApi.song_url(urlParams);
+      if (result?.body?.data?.[0]?.url) {
+        return result.body.data[0].url;
+      }
+    } catch (e: any) {
+      console.warn('Netease API song_url failed:', e.message);
     }
   }
   
@@ -465,9 +485,11 @@ export function apiPlugin(): Plugin {
         const id = url.searchParams.get('id') || '';
         const cookie = resolveCookie(req);
         
-        if (cookie && NeteaseMusicApi?.lyric) {
+        if (NeteaseMusicApi?.lyric) {
           try {
-            const result = await NeteaseMusicApi.lyric({ id, cookie });
+            const lyricParams: any = { id };
+            if (cookie) lyricParams.cookie = cookie;
+            const result = await NeteaseMusicApi.lyric(lyricParams);
             if (result?.body?.lrc?.lyric) {
               sendJson(res, 200, { status: true, data: result.body.lrc.lyric });
               return;

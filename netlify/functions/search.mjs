@@ -2,6 +2,7 @@ import { COLORS, UA, jsonResponse, getCookie, buildCookieHeaders } from './_shar
 
 async function searchWithWebApi(keyword, page, limit, cookie) {
   try {
+    // 使用网易云搜索 API
     const url = `https://music.163.com/api/search/get/web?csrf_token=&s=${encodeURIComponent(keyword)}&type=1&limit=${limit}&offset=${page * limit}`;
     const resp = await fetch(url, {
       headers: buildCookieHeaders(cookie),
@@ -20,6 +21,8 @@ async function searchWithWebApi(keyword, page, limit, cookie) {
       vendor: 'netease',
       color: COLORS[i % COLORS.length],
     }));
+
+    // 补全封面
     const songsWithoutCover = songs.filter((s) => !s.cover);
     if (songsWithoutCover.length > 0) {
       try {
@@ -33,9 +36,14 @@ async function searchWithWebApi(keyword, page, limit, cookie) {
           detData.songs.forEach((s) => { if (s.album && s.album.picUrl) coverMap[s.id] = s.album.picUrl; });
           songs.forEach((s) => { if (coverMap[s.songId]) s.cover = coverMap[s.songId]; });
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Cover fetch error:', e.message);
+      }
     }
+
+    // 对没有封面的歌曲使用随机封面
     songs.forEach((s) => { if (!s.cover) s.cover = `https://picsum.photos/seed/${encodeURIComponent(s.name)}/300/300`; });
+
     return { total: data.result.songCount || songs.length, songs };
   } catch (e) {
     console.error('Web search error:', e.message);
