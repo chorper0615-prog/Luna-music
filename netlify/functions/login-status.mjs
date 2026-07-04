@@ -1,4 +1,4 @@
-import { NeteaseMusicApi, jsonResponse, getCookie } from './_shared.mjs';
+import { jsonResponse, getCookie, buildCookieHeaders } from './_shared.mjs';
 
 export async function handler(event) {
   const cookie = getCookie(event);
@@ -8,14 +8,11 @@ export async function handler(event) {
   }
 
   try {
-    if (!NeteaseMusicApi?.login_status) {
-      throw new Error('Login status API not available');
-    }
-
-    const result = await NeteaseMusicApi.login_status({ cookie });
-    const data = result?.body?.data || result?.body || {};
-
-    if (data.code === 200 && data.profile) {
+    const resp = await fetch('https://music.163.com/api/w/nuser/account/get', {
+      headers: buildCookieHeaders(cookie),
+    });
+    const data = await resp.json();
+    if (data.code === 200 && data.account && data.profile) {
       return jsonResponse(200, {
         code: 200,
         data: {

@@ -1,4 +1,4 @@
-import { NeteaseMusicApi, jsonResponse } from './_shared.mjs';
+import { jsonResponse, buildHeaders } from './_shared.mjs';
 
 export async function handler(event) {
   const key = event.queryStringParameters?.key || '';
@@ -8,15 +8,26 @@ export async function handler(event) {
   }
 
   try {
-    if (!NeteaseMusicApi?.login_qr_check) {
-      throw new Error('QR check API not available');
-    }
-
-    const result = await NeteaseMusicApi.login_qr_check({ key });
-    const data = result?.body || {};
+    const resp = await fetch(`https://music.163.com/api/login/qrcode/client/login?key=${key}&type=1`, {
+      headers: buildHeaders(),
+    });
+    const data = await resp.json();
     const code = data.code || 800;
-    const message = data.message || (code === 803 ? '登录成功' : '');
-    const cookie = data.cookie || '';
+    let message = '';
+    let cookie = '';
+
+    if (code === 800) message = '二维码已过期';
+    else if (code === 801) message = '等待扫码';
+    else if (code === 802) message = '已扫码，请在手机上确认';
+    else if (code === 803) {
+      message = '登录成功';
+      const setCookie = resp.headers.get('set-cookie') || '';
+      if (setCookie) {
+        const cookies = setCookie.split(/,(?=\s*[a-zA-Z_])/);
+        cookie = cookies.map(c => c.split(';')[0]).join('; ');
+      }
+      if (data.cookie) cookie = data.cookie;
+    }
 
     return jsonResponse(200, { code, message, cookie });
   } catch (e) {
