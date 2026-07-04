@@ -1,13 +1,20 @@
-import { NeteaseMusicApi, jsonResponse } from './_shared.mjs';
+import { jsonResponse, buildHeaders } from './_shared.mjs';
 
 export async function handler() {
-  if (!NeteaseMusicApi?.login_qr_key) {
-    return jsonResponse(500, { code: 500, message: 'API not available' });
-  }
-
   try {
-    const result = await NeteaseMusicApi.login_qr_key({});
-    return jsonResponse(200, { code: 200, data: result?.body?.data || {} });
+    const resp = await fetch('https://music.163.com/api/login/qrcode/unikey', {
+      method: 'POST',
+      headers: {
+        ...buildHeaders(),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'type=1',
+    });
+    const data = await resp.json();
+    if (data.code === 200 && data.unikey) {
+      return jsonResponse(200, { code: 200, data: { unikey: data.unikey } });
+    }
+    return jsonResponse(500, { code: 500, message: '获取二维码Key失败', raw: data });
   } catch (e) {
     return jsonResponse(500, { code: 500, message: e.message });
   }

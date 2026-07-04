@@ -1,20 +1,19 @@
-import { NeteaseMusicApi, UA, jsonResponse, getCookie } from './_shared.mjs';
+import { UA, jsonResponse, getCookie, buildCookieHeaders } from './_shared.mjs';
 
 const METING_API = 'https://api.injahow.cn/meting';
 
-async function getUrlWithNeteaseApi(id, cookie) {
-  if (!NeteaseMusicApi?.song_url_v1 || !cookie) return null;
+async function getUrlWithNetease(id, cookie) {
   try {
-    const result = await NeteaseMusicApi.song_url_v1({
-      id,
-      level: 'exhigh',
-      cookie,
+    const url = `https://music.163.com/api/song/enhance/player/url/v1?id=${id}&level=exhigh&cookie=${cookie ? encodeURIComponent(cookie) : ''}`;
+    const resp = await fetch(url, {
+      headers: buildCookieHeaders(cookie),
     });
-    if (result?.body?.data?.[0]?.url) {
-      return result.body.data[0].url;
+    const data = await resp.json();
+    if (data.code === 200 && data.data && data.data[0] && data.data[0].url) {
+      return data.data[0].url;
     }
   } catch (e) {
-    console.warn('Netease API song_url_v1 failed:', e.message);
+    console.warn('Netease song url error:', e.message);
   }
   return null;
 }
@@ -42,11 +41,9 @@ export async function handler(event) {
     return jsonResponse(200, { status: false, msg: '缺少歌曲ID' });
   }
 
-  if (cookie && NeteaseMusicApi) {
-    const url = await getUrlWithNeteaseApi(id, cookie);
-    if (url) {
-      return jsonResponse(200, { status: true, data: url });
-    }
+  const neteaseUrl = await getUrlWithNetease(id, cookie);
+  if (neteaseUrl) {
+    return jsonResponse(200, { status: true, data: neteaseUrl });
   }
 
   const metingUrl = await getUrlWithMeting(id, vendor);

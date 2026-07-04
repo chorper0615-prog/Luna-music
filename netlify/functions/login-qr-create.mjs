@@ -1,4 +1,4 @@
-import { NeteaseMusicApi, jsonResponse } from './_shared.mjs';
+import { jsonResponse, buildHeaders } from './_shared.mjs';
 
 export async function handler(event) {
   const key = event.queryStringParameters?.key || '';
@@ -7,13 +7,15 @@ export async function handler(event) {
     return jsonResponse(400, { code: 400, message: 'Missing key' });
   }
 
-  if (!NeteaseMusicApi?.login_qr_create) {
-    return jsonResponse(500, { code: 500, message: 'API not available' });
-  }
-
   try {
-    const result = await NeteaseMusicApi.login_qr_create({ key, qrimg: true });
-    return jsonResponse(200, { code: 200, data: result?.body?.data || {} });
+    const qrUrl = `https://music.163.com/login?codekey=${key}`;
+    return jsonResponse(200, {
+      code: 200,
+      data: {
+        qrurl: qrUrl,
+        qrimg: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`,
+      },
+    });
   } catch (e) {
     return jsonResponse(500, { code: 500, message: e.message });
   }
