@@ -1,5 +1,6 @@
  import { useState, useEffect, useRef } from 'react';
 import { PlayerState, RepeatMode, Track } from '../types/music';
+import { apiGet } from '../utils/neteaseAuth';
 import AlbumArt from './AlbumArt';
 import ProgressBar from './ProgressBar';
  
@@ -124,8 +125,7 @@ export default function FullPlayer({
     async function fetchLRC() {
       if (!track?.id) { setLyrics([]); return; }
       try {
-        var resp = await fetch("/api/lyric?id=" + encodeURIComponent(track.id));
-        var data = await resp.json();
+        const data = await apiGet('/api/lyric', { id: track.id });
         if (data.status && data.data) setLyrics(parseLRC(data.data));
         else { setLyrics([]); }
       } catch(e) { setLyrics([]); }

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { searchMusic } from '../api/musicApi';
 import { CATEGORIES, HOT_SEARCHES } from '../data/defaultTracks';
 import { Track } from '../types/music';
+import { buildUrl } from '../utils/neteaseAuth';
 import AlbumArt from './AlbumArt';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -102,7 +103,8 @@ export default function SearchView({ currentTrack, onPlay, isFavorite, onToggleF
     setSearched(true);
     
     try {
-      const res = await fetch(`/api/search?keyword=${encodeURIComponent(q)}&limit=20&page=0`, {
+      const searchUrl = buildUrl('/api/search', { keyword: q, limit: '20', page: '0' });
+      const res = await fetch(searchUrl, {
         signal: controller.signal,
       });
       

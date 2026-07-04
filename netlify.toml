@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["NeteaseCloudMusicApi"]
+
 [[redirects]]
   from = "/api/search"
   to = "/.netlify/functions/search"
@@ -20,4 +25,34 @@
 [[redirects]]
   from = "/api/lyric"
   to = "/.netlify/functions/lyric"
+  status = 200
+
+[[redirects]]
+  from = "/api/login/qr/key"
+  to = "/.netlify/functions/login-qr-key"
+  status = 200
+
+[[redirects]]
+  from = "/api/login/qr/create"
+  to = "/.netlify/functions/login-qr-create"
+  status = 200
+
+[[redirects]]
+  from = "/api/login/qr/check"
+  to = "/.netlify/functions/login-qr-check"
+  status = 200
+
+[[redirects]]
+  from = "/api/login/status"
+  to = "/.netlify/functions/login-status"
+  status = 200
+
+[[redirects]]
+  from = "/api/logout"
+  to = "/.netlify/functions/logout"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200

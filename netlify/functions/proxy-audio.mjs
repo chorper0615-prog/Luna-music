@@ -1,4 +1,4 @@
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+import { UA, getCookie } from './_shared.mjs';
 
 function getAudioContentType(url) {
   const lowerUrl = url.toLowerCase();
@@ -13,6 +13,7 @@ function getAudioContentType(url) {
 
 export async function handler(event) {
   const audioUrl = event.queryStringParameters?.url || '';
+  const cookie = getCookie(event);
 
   if (!audioUrl) {
     return {
@@ -35,6 +36,9 @@ export async function handler(event) {
     };
     if (rangeHeader) {
       fetchHeaders['Range'] = rangeHeader;
+    }
+    if (cookie) {
+      fetchHeaders['Cookie'] = cookie;
     }
 
     const audioResp = await fetch(decodedUrl, {

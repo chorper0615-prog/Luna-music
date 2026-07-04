@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Track, Tab } from './types/music';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useFavorites } from './hooks/useFavorites';
+import { useNeteaseLogin } from './hooks/useNeteaseLogin';
 import DynamicBackground from './components/DynamicBackground';
 import MiniPlayer from './components/MiniPlayer';
 import FullPlayer from './components/FullPlayer';
@@ -11,6 +12,7 @@ import SearchView from './components/SearchView';
 import LibraryView from './components/LibraryView';
 import SplashScreen from './components/SplashScreen';
 import IpodMode from './components/IpodMode';
+import QrLoginPanel from './components/QrLoginPanel';
 
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
@@ -21,10 +23,15 @@ export default function App() {
   const [ipodMode, setIpodMode] = useState(false);
   const [tabTransitionKey, setTabTransitionKey] = useState(0);
   const [isSearchTransition, setIsSearchTransition] = useState(false);
+  const [qrLoginOpen, setQrLoginOpen] = useState(false);
 
   useEffect(() => { document.documentElement.className = theme; }, [theme]);
 
-  const user = { name: '音乐爱好者', avatar: null as string | null };
+  const { userInfo: neteaseUser, logout: neteaseLogout, checkLoginStatus } = useNeteaseLogin();
+
+  const displayUser = neteaseUser.isLoggedIn 
+    ? { name: neteaseUser.nickname || '网易云用户', avatar: neteaseUser.avatarUrl || null }
+    : { name: '音乐爱好者', avatar: null as string | null };
 
   const { favorites, isFavorite, toggleFavorite, addFavorite, removeFavorite, clearFavorites } = useFavorites();
 
@@ -98,9 +105,18 @@ export default function App() {
               <span style={{ color: 'var(--text-primary)' }}>🎵</span>
             </button>
             <button onClick={() => setProfileOpen(!profileOpen)} className='relative w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center backdrop-blur-xl transition-all duration-300 active:scale-85 hover:scale-105' style={{ borderColor: 'var(--glass-border)' }}>
-              <div className='w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center'>
-                <span className='text-sm font-semibold text-white'>M</span>
-              </div>
+              {displayUser.avatar ? (
+                <img src={displayUser.avatar} alt={displayUser.name} className='w-full h-full object-cover' />
+              ) : (
+                <div className='w-full h-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center'>
+                  <span className='text-sm font-semibold text-white'>{displayUser.name.charAt(0)}</span>
+                </div>
+              )}
+              {neteaseUser.isLoggedIn && (
+                <div className='absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center'>
+                  <span className='text-[8px]'>♪</span>
+                </div>
+              )}
             </button>
           </div>
         </div>
@@ -144,26 +160,83 @@ export default function App() {
                   style={{ background: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.8)' }}
                 >
                   <div className='flex items-center gap-4'>
-                    <div className='w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-lg shrink-0'>
-                      {user.name.charAt(0)}
+                    <div className='relative shrink-0'>
+                      {displayUser.avatar ? (
+                        <img 
+                          src={displayUser.avatar} 
+                          alt={displayUser.name} 
+                          className='w-16 h-16 rounded-full object-cover shadow-lg'
+                        />
+                      ) : (
+                        <div className='w-16 h-16 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-2xl font-bold text-white shadow-lg'>
+                          {displayUser.name.charAt(0)}
+                        </div>
+                      )}
+                      {neteaseUser.isLoggedIn && (
+                        <div className='absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center'>
+                          <span className='text-[10px] text-white'>♪</span>
+                        </div>
+                      )}
                     </div>
                     <div className='min-w-0 flex-1'>
-                      <p className='text-lg font-semibold truncate' style={{ color: 'var(--text-primary)' }}>{user.name}</p>
-                      <p className='text-sm mt-0.5' style={{ color: 'var(--text-secondary)' }}>账户信息、付款方式和设置</p>
+                      <p className='text-lg font-semibold truncate' style={{ color: 'var(--text-primary)' }}>
+                        {displayUser.name}
+                      </p>
+                      <p className='text-sm mt-0.5' style={{ color: 'var(--text-secondary)' }}>
+                        {neteaseUser.isLoggedIn 
+                          ? (neteaseUser.vipType && neteaseUser.vipType > 0 ? '网易云音乐 VIP' : '网易云音乐已登录')
+                          : '未登录网易云'}
+                      </p>
                     </div>
-                    <svg className='w-5 h-5 shrink-0' style={{ color: 'var(--text-secondary)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                    </svg>
                   </div>
                 </div>
 
-                <div
-                  className='rounded-3xl p-5 mb-5'
-                  style={{ background: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.8)' }}
-                >
-                  <p className='text-xl font-semibold mb-2' style={{ color: '#ff3b30' }}>免费畅听 1 个月</p>
-                  <p className='text-sm' style={{ color: 'var(--text-secondary)' }}>免费畅听 1 个月，之后 ¥10.99/月。</p>
-                </div>
+                {!neteaseUser.isLoggedIn ? (
+                  <button
+                    onClick={() => { setQrLoginOpen(true); setProfileOpen(false); }}
+                    className='w-full py-4 rounded-2xl text-base font-semibold text-white mb-5 btn-press transition-all duration-200 active:scale-[0.98]'
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <span className='flex items-center justify-center gap-2'>
+                      <svg className='w-5 h-5' viewBox='0 0 24 24' fill='currentColor'>
+                        <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/>
+                      </svg>
+                      登录网易云音乐
+                    </span>
+                  </button>
+                ) : (
+                  <div
+                    className='rounded-3xl overflow-hidden mb-5'
+                    style={{ background: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.8)' }}
+                  >
+                    <button className='w-full flex items-center justify-between px-5 py-4 btn-press' style={{ borderBottom: theme === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)' }}>
+                      <div className='flex items-center gap-3'>
+                        <span className='text-xl'>🎵</span>
+                        <span className='text-base' style={{ color: 'var(--text-primary)' }}>我的音乐云盘</span>
+                      </div>
+                      <svg className='w-5 h-5' style={{ color: 'var(--text-secondary)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        await neteaseLogout();
+                        checkLoginStatus();
+                      }}
+                      className='w-full flex items-center justify-between px-5 py-4 btn-press'
+                    >
+                      <span className='text-base text-red-500'>退出登录</span>
+                      <svg className='w-5 h-5 text-red-500/60' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1' />
+                      </svg>
+                    </button>
+                  </div>
+                )}
 
                 <div
                   className='rounded-3xl overflow-hidden mb-5'
@@ -278,6 +351,14 @@ export default function App() {
           />
         </div>
       )}
+
+      <QrLoginPanel 
+        isOpen={qrLoginOpen} 
+        onClose={() => setQrLoginOpen(false)} 
+        onLoginSuccess={() => {
+          checkLoginStatus();
+        }}
+      />
 
       <style>{`
         @keyframes ipod-enter {

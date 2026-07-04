@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayerState, RepeatMode, Track } from '../types/music';
 import { getSongUrl } from '../api/musicApi';
+import { buildProxyAudioUrl } from '../utils/neteaseAuth';
 
 const HISTORY_KEY = 'luna_play_history';
 const MAX_HISTORY = 100;
@@ -98,7 +99,7 @@ export function useAudioPlayer() {
       // 如果当前URL不是代理URL，尝试用代理播放
       const currentSrc = audio?.src || '';
       if (currentSrc && !currentSrc.includes('/api/proxy-audio') && currentTrack) {
-        const proxyUrl = `/api/proxy-audio?url=${encodeURIComponent(currentSrc)}`;
+        const proxyUrl = buildProxyAudioUrl(currentSrc);
         if (proxyFallbackRef.current !== currentTrack.id) {
           proxyFallbackRef.current = currentTrack.id;
           audio.src = proxyUrl;
