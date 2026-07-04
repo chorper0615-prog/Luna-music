@@ -1,3 +1,9 @@
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
+export const NeteaseMusicApi = require('NeteaseCloudMusicApi');
+
 export const COLORS = ['#ff6b6b','#ff8f5a','#ffb347','#ffd166','#7bdff2','#6c8cff','#9d7bff','#ff7eb6','#5eead4','#34d399'];
 export const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
