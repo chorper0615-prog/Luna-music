@@ -62,120 +62,109 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
     return () => clearTimeout(timer);
   }, []);
 
+  const seededRandom = (seed: number) => {
+    let s = seed;
+    return () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+  };
+
+  const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
+    const shuffled = [...arr];
+    const random = seededRandom(seed * 1000 + 7);
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   useEffect(() => {
-    loadRecommendSongs();
-    loadNewSongs();
-    loadRecentSongs();
-    loadPlaylistSongs();
+    loadAllData();
   }, []);
 
-  const loadRecommendSongs = async () => {
-    setLoadingRecommend(true);
-    const keywords = RECOMMEND_KEYWORDS.slice(0, 6);
-    const songs: Track[] = [];
-    for (const item of keywords) {
-      try {
-        const results = await searchMusic(item.keyword);
-        if (results.length > 0) {
-          songs.push(results[0]);
-        }
-      } catch {}
-    }
-    setRecommendSongs(songs);
-    setLoadingRecommend(false);
-  };
-
-  const loadNewSongs = async () => {
-    setLoadingNew(true);
-    const keywords = RECOMMEND_KEYWORDS.slice(6, 12);
-    const songs: Track[] = [];
-    for (const item of keywords) {
-      try {
-        const results = await searchMusic(item.keyword);
-        if (results.length > 0) {
-          songs.push(results[0]);
-        }
-      } catch {}
-    }
-    setNewSongs(songs);
-    setLoadingNew(false);
-  };
-
-  const loadRecentSongs = async () => {
-    setLoadingRecent(true);
-    const keywords = RECOMMEND_KEYWORDS.slice(2, 8);
-    const songs: Track[] = [];
-    for (const item of keywords) {
-      try {
-        const results = await searchMusic(item.keyword);
-        if (results.length > 0) {
-          songs.push(results[0]);
-        }
-      } catch {}
-    }
-    setRecentSongs(songs);
-    setLoadingRecent(false);
-  };
-
-  const loadPlaylistSongs = async () => {
-    setLoadingPlaylists(true);
-    const allPlaylists = [...PLAYLIST_DATA, ...FEATURED_DATA];
-    const result: Record<string, Track[]> = {};
-    const allFallbackSongs: Track[] = [];
+  const loadAllData = async () => {
+    const allKeywords = new Set<string>();
+    RECOMMEND_KEYWORDS.forEach(item => allKeywords.add(item.keyword));
+    PLAYLIST_DATA.forEach(item => allKeywords.add(item.keyword));
+    FEATURED_DATA.forEach(item => allKeywords.add(item.keyword));
     
-    for (let i = 0; i < RECOMMEND_KEYWORDS.length; i++) {
-      try {
-        const results = await searchMusic(RECOMMEND_KEYWORDS[i].keyword);
-        if (results.length > 0) {
-          allFallbackSongs.push(...results.slice(0, 3));
-        }
-      } catch {}
-    }
+    const keywordList = Array.from(allKeywords);
     
-    const uniqueSongs = allFallbackSongs.filter((s, i, arr) => 
-      arr.findIndex(x => x.id === s.id) === i
+    const searchPromises = keywordList.map(keyword => 
+      searchMusic(keyword).catch(() => [])
     );
     
-    const seededRandom = (seed: number) => {
-      let s = seed;
-      return () => {
-        s = (s * 9301 + 49297) % 233280;
-        return s / 233280;
-      };
-    };
+    const allResults = await Promise.all(searchPromises);
     
-    const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
-      const shuffled = [...arr];
-      const random = seededRandom(seed * 1000 + 7);
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const keywordToSongs: Record<string, Track[]> = {};
+    keywordList.forEach((keyword, idx) => {
+      keywordToSongs[keyword] = allResults[idx] || [];
+    });
+    
+    const allSongs: Track[] = [];
+    allResults.forEach(results => {
+      allSongs.push(...results);
+    });
+    
+    const uniqueSongs = allSongs.filter((s, i, arr) => 
+      arr.findIndex(x => x.id === s.id) === i
+    );
+
+    const recommendKeywords = RECOMMEND_KEYWORDS.slice(0, 6).map(item => item.keyword);
+    const recommend: Track[] = [];
+    for (const kw of recommendKeywords) {
+      const songs = keywordToSongs[kw] || [];
+      if (songs.length > 0) {
+        recommend.push(songs[0]);
       }
-      return shuffled;
-    };
+    }
+    setRecommendSongs(recommend);
+    setLoadingRecommend(false);
+
+    const newKeywords = RECOMMEND_KEYWORDS.slice(6, 12).map(item => item.keyword);
+    const news: Track[] = [];
+    for (const kw of newKeywords) {
+      const songs = keywordToSongs[kw] || [];
+      if (songs.length > 0) {
+        news.push(songs[0]);
+      }
+    }
+    setNewSongs(news);
+    setLoadingNew(false);
+
+    const recentKeywords = RECOMMEND_KEYWORDS.slice(2, 8).map(item => item.keyword);
+    const recent: Track[] = [];
+    for (const kw of recentKeywords) {
+      const songs = keywordToSongs[kw] || [];
+      if (songs.length > 0) {
+        recent.push(songs[0]);
+      }
+    }
+    setRecentSongs(recent);
+    setLoadingRecent(false);
+
+    const allPlaylists = [...PLAYLIST_DATA, ...FEATURED_DATA];
+    const playlistResult: Record<string, Track[]> = {};
     
     for (let idx = 0; idx < allPlaylists.length; idx++) {
       const pl = allPlaylists[idx];
-      try {
-        const results = await searchMusic(pl.keyword);
-        if (results.length > 0) {
-          result[pl.id] = results.slice(0, 10);
-        } else {
-          const shuffled = shuffleArray(uniqueSongs, idx + 1);
-          result[pl.id] = shuffled.slice(0, Math.min(10, shuffled.length));
-        }
-      } catch {
+      const songs = keywordToSongs[pl.keyword] || [];
+      if (songs.length > 0) {
+        playlistResult[pl.id] = songs.slice(0, 10);
+      } else {
         const shuffled = shuffleArray(uniqueSongs, idx + 1);
-        result[pl.id] = shuffled.slice(0, Math.min(10, shuffled.length));
+        playlistResult[pl.id] = shuffled.slice(0, Math.min(10, shuffled.length));
       }
     }
-    setPlaylistSongs(result);
+    setPlaylistSongs(playlistResult);
     setLoadingPlaylists(false);
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([loadRecommendSongs(), loadNewSongs(), loadRecentSongs(), loadPlaylistSongs()]);
+    await loadAllData();
     setIsRefreshing(false);
   };
 
@@ -265,7 +254,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
       </div>
 
       <div className="px-5 pt-1 pb-28">
-        {/* 搜索按钮 - iOS 26 液态玻璃风格 */}
         <div
           onClick={onSearchClick}
           className={`flex items-center gap-2 h-11 rounded-2xl px-4 mb-6 transition-all duration-300 glass-ios active:scale-[0.98] ${loaded ? 'animate-fade-in' : 'opacity-0'}`}
@@ -277,7 +265,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
           <span className="text-white/50 text-sm flex-1">搜索歌曲、歌手、专辑</span>
         </div>
 
-        {/* 为你推荐 - 大卡片横向滚动 iOS 26 风格 */}
         <div className={`mb-8 transition-all duration-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: '0.1s' }}>
           <h2 className="text-white text-2xl font-bold mb-4">为你推荐</h2>
           <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
@@ -292,7 +279,12 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                 >
                   <div className="relative w-64 h-64 rounded-3xl overflow-hidden mb-3 shadow-2xl group">
                     {cover ? (
-                      <img src={cover} alt={pl.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img 
+                        src={cover} 
+                        alt={pl.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-br ${pl.color} animate-pulse-soft`}>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/10" />
@@ -300,14 +292,12 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/5" />
                     
-                    {/* 液态玻璃播放按钮 */}
                     <div className="absolute top-4 right-4 w-11 h-11 rounded-full flex items-center justify-center glass-ios animate-breath">
                       <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
                     
-                    {/* 底部信息 - 液态玻璃条 */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="glass-ios rounded-2xl p-3">
                         <p className="text-white font-semibold text-sm">{pl.name}</p>
@@ -321,7 +311,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
           </div>
         </div>
 
-        {/* 精选歌单 - 中等卡片横向滚动 iOS 26 风格 */}
         <div className={`mb-8 transition-all duration-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: '0.2s' }}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white text-2xl font-bold">精选歌单</h2>
@@ -338,7 +327,12 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                 >
                   <div className="relative w-40 h-40 rounded-2xl overflow-hidden mb-2 shadow-xl group">
                     {cover ? (
-                      <img src={cover} alt={pl.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img 
+                        src={cover} 
+                        alt={pl.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-br ${pl.color} animate-pulse-soft`}>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
@@ -346,7 +340,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     
-                    {/* 播放按钮 */}
                     <div className="absolute bottom-2 right-2 w-9 h-9 rounded-full flex items-center justify-center glass-ios">
                       <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
@@ -361,7 +354,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
           </div>
         </div>
 
-        {/* 最近播放 - 封面横向滚动 iOS 26 风格 */}
         <div className={`mb-8 transition-all duration-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: '0.3s' }}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white text-2xl font-bold">最近播放</h2>
@@ -381,7 +373,12 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                 >
                   <div className="relative w-36 h-36 rounded-2xl overflow-hidden mb-2 shadow-lg group">
                     {song.cover ? (
-                      <img src={song.cover} alt={song.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img 
+                        src={song.cover} 
+                        alt={song.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-br ${getRandomColor(index)} flex items-center justify-center animate-pulse-soft`}>
                         <span className="text-white/80 text-3xl">♪</span>
@@ -389,7 +386,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
-                    {/* 播放按钮 - 悬停显示 */}
                     <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg transform translate-y-2 group-hover:translate-y-0">
                       <svg className="w-4 h-4 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
@@ -404,7 +400,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
           </div>
         </div>
 
-        {/* 热门歌曲 - 列表形式 iOS 26 风格 */}
         <div className={`mb-8 transition-all duration-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: '0.4s' }}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white text-2xl font-bold">热门歌曲</h2>
@@ -439,7 +434,12 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                   </div>
                   <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
                     {song.cover ? (
-                      <img src={song.cover} alt={song.title} className="w-full h-full object-cover" />
+                      <img 
+                        src={song.cover} 
+                        alt={song.title} 
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-br ${getRandomColor(index)} flex items-center justify-center`}>
                         <span className="text-white/80 text-lg">♪</span>
@@ -461,7 +461,6 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
           </div>
         </div>
 
-        {/* 新歌推荐 - 列表形式 iOS 26 风格 */}
         <div className={`mb-8 transition-all duration-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: '0.5s' }}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white text-2xl font-bold">新歌推荐</h2>
@@ -489,7 +488,12 @@ export default function HomeView({ onPlay, onSearchClick }: Props) {
                 >
                   <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-md relative group">
                     {song.cover ? (
-                      <img src={song.cover} alt={song.title} className="w-full h-full object-cover" />
+                      <img 
+                        src={song.cover} 
+                        alt={song.title} 
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
                     ) : (
                       <div className={`w-full h-full bg-gradient-to-br ${getRandomColor(index + 3)} flex items-center justify-center`}>
                         <span className="text-white/80 text-lg">♪</span>
